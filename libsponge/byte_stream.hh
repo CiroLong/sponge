@@ -1,7 +1,12 @@
 #ifndef SPONGE_LIBSPONGE_BYTE_STREAM_HH
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
+#include <cstddef>
+#include <cstdint>
+#include <deque>
+#include <list>
 #include <string>
+#include <utility>
 
 //! \brief An in-order byte stream.
 
@@ -9,7 +14,7 @@
 //! side.  The byte stream is finite: the writer can end the input,
 //! and then no more bytes can be written.
 class ByteStream {
-  private:
+private:
     // Your code here -- add private members as necessary.
 
     // Hint: This doesn't need to be a sophisticated data structure at
@@ -19,7 +24,14 @@ class ByteStream {
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
-  public:
+    size_t _capacity;
+    std::string buf;
+    size_t rpos;  // !< 总共读取的子节
+    size_t used;  // !< Used buffer size
+
+    bool _end_input;
+
+public:
     //! Construct a stream with room for `capacity` bytes.
     ByteStream(const size_t capacity);
 
@@ -53,7 +65,11 @@ class ByteStream {
 
     //! Read (i.e., copy and then pop) the next "len" bytes of the stream
     //! \returns a string
-    std::string read(const size_t len);
+    std::string read(const size_t len) {
+        const auto ret = peek_output(len);
+        pop_output(len);
+        return ret;
+    }
 
     //! \returns `true` if the stream input has ended
     bool input_ended() const;
