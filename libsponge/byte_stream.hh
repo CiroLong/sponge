@@ -14,7 +14,7 @@
 //! side.  The byte stream is finite: the writer can end the input,
 //! and then no more bytes can be written.
 class ByteStream {
-private:
+  private:
     // Your code here -- add private members as necessary.
 
     // Hint: This doesn't need to be a sophisticated data structure at
@@ -27,11 +27,11 @@ private:
     size_t _capacity;
     std::string buf;
     size_t rpos;  // !< 总共读取的子节
-    size_t used;  // !< Used buffer size
+    size_t used;  // !< Used buffer size   // 已经使用的字节数
 
     bool _end_input;
 
-public:
+  public:
     //! Construct a stream with room for `capacity` bytes.
     ByteStream(const size_t capacity);
 

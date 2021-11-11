@@ -17,7 +17,7 @@ using namespace std;
 
 // !< 添加初始化
 ByteStream::ByteStream(const size_t capacity)
-        : _capacity(capacity), buf(capacity, 0), rpos(0), used(0), _end_input(false) {}
+    : _capacity(capacity), buf(capacity, 0), rpos(0), used(0), _end_input(false) {}
 
 size_t ByteStream::write(const string &data) {
     if (used == _capacity || _end_input) {
@@ -40,6 +40,7 @@ size_t ByteStream::write(const string &data) {
     return size;
 }
 
+// ! read it
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(const size_t len) const {
     const size_t size = min(len, used);
@@ -55,6 +56,7 @@ string ByteStream::peek_output(const size_t len) const {
     return ret;
 }
 
+// ! read it
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(const size_t len) {
     size_t size = min(len, used);
@@ -80,8 +82,10 @@ bool ByteStream::buffer_empty() const { return buffer_size() == 0; }
 
 bool ByteStream::eof() const { return input_ended() && buffer_empty(); }
 
+// ! read it 总共写入的字节数为：rpos + used， rpos可能无限增大， 因此使用时要%capacity
 size_t ByteStream::bytes_written() const { return rpos + used; }
 
+// ！ rpos即为read position
 size_t ByteStream::bytes_read() const { return rpos; }
 
 size_t ByteStream::remaining_capacity() const { return _capacity - used; }

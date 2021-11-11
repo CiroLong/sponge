@@ -4,16 +4,39 @@
 #include "byte_stream.hh"
 
 #include <cstdint>
+#include <list>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
 class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
+    // 注意到private members always start by '_'
+    struct Segement {
+        std::string data;
+        size_t index;
+        size_t length;
+        bool operator<(Segement &s) { return index < s.index; }
+        Segement() : data(), index(0), length(0) {}
+        Segement(std::string s, size_t index) : data(s), index(index), length(s.size()) {}
+    };
 
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
+
+    bool _eof;                //!< 标志
+    size_t _assembled_bytes;  //!< 已经重组好的字节数 _assembled_bytes or _first_unassemble_byte
+    size_t _stored_bytes;     //!< 存储的字节数? = _output.size() + map中的串长
+
+    std::set<Segement> _stored_segements;
+
+    //! \returns the bytes merged or 0 for no bytes merged
+    //! merge elm2 to elm1
+    size_t mergeSubstrings(Segement &elm1, const Segement &elm2);
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
@@ -46,6 +69,8 @@ class StreamReassembler {
     //! \brief Is the internal state empty (other than the output stream)?
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const;
+
+    size_t assembled_bytes() const;
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
