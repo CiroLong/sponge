@@ -9,6 +9,12 @@
         "unordered_set": "cpp",
         "vector": "cpp",
         "string_view": "cpp",
-        "initializer_list": "cpp"
-    }
+        "initializer_list": "cpp",
+        "limits": "cpp"
+    },
+    "editor.mouseWheelZoom": true,
+    "editor.fontSize": 22,
+    "editor.codeLensFontSize": 30,
+    "debug.console.fontSize": 30,
+    "debug.console.lineHeight": 5
 }
