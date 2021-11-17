@@ -45,6 +45,7 @@ size_t StreamReassembler::mergeSubstrings(Segement &elm1, const Segement &elm2) 
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
     if (index >= _capacity + _output.bytes_read())  //!< 溢出，直接丢弃
         return;
+
     Segement tmp(data, index);
     if (index + tmp.length > _capacity + _output.bytes_read()) {  //!< 丢弃溢出部分
         tmp.data.resize(_capacity + _output.bytes_read() - index);
@@ -89,14 +90,18 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         }
     } while (false);
     _stored_segements.insert(tmp);
-    //! write to _output
 
+    //! write to _output
     if (!_stored_segements.empty() && _stored_segements.begin()->index == _assembled_bytes) {
         const Segement head_block = *_stored_segements.begin();
         // modify _head_index and _unassembled_byte according to successful write to _output
         size_t write_bytes = _output.write(head_block.data);
         _assembled_bytes += write_bytes;
         _stored_segements.erase(_stored_segements.begin());
+    }
+
+    if (_eof && empty()) {
+        _output.end_input();
     }
 }
 

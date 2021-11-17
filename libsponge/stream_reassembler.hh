@@ -13,16 +13,16 @@
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
 class StreamReassembler {
-  private:
+  public:
     // Your code here -- add private members as necessary.
     // 注意到private members always start by '_'
     struct Segement {
         std::string data;
         size_t index;
         size_t length;
-        bool operator<(Segement &s) { return index < s.index; }
+        bool operator<(const Segement &s) const { return this->index < s.index; }
         Segement() : data(), index(0), length(0) {}
-        Segement(std::string s, size_t index) : data(s), index(index), length(s.size()) {}
+        Segement(std::string s, size_t a) : data(s), index(a), length(s.size()) {}
     };
 
     ByteStream _output;  //!< The reassembled in-order byte stream
