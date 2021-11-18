@@ -110,3 +110,5 @@ size_t StreamReassembler::unassembled_bytes() const { return _stored_bytes - _as
 bool StreamReassembler::empty() const { return _stored_bytes == _assembled_bytes && _eof; }
 
 size_t StreamReassembler::assembled_bytes() const { return _assembled_bytes; }
+
+bool StreamReassembler::input_ended() { return _output.input_ended(); }

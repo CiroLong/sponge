@@ -71,6 +71,7 @@ class StreamReassembler {
     bool empty() const;
 
     size_t assembled_bytes() const;
+    bool input_ended();
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
