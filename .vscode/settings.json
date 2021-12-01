@@ -13,9 +13,9 @@
         "limits": "cpp"
     },
     "editor.mouseWheelZoom": true,
-    "editor.fontSize": 24,
+    "editor.fontSize": 20,
     "editor.codeLensFontSize": 30,
     "debug.console.fontSize": 30,
     "debug.console.lineHeight": 5,
-    "window.zoomLevel": 1.2
+    "window.zoomLevel": 1.3
 }
