@@ -6,6 +6,8 @@
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+#include <cassert>
+#include <cmath>
 #include <functional>
 #include <queue>
 
@@ -22,15 +24,44 @@ class TCPSender {
 
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out{};
+    //! 维护已经发送的报文端，用于确认是否需要再发送.
+    std::queue<TCPSegment> _segments_outstanding{};
 
     //! retransmission timer for the connection
-    unsigned int _initial_retransmission_timeout;
+    //! RTO
+    //! 连接的重传定时器
+    unsigned int _initial_retransmission_timeout;  //!< 初始值
+    unsigned int _retransmission_timeout;          //!< 初始值和上面相同,超时后翻倍
+    //! 需要的计时器
+    size_t _timer{0};
+    bool _timer_running{false};
 
     //! outgoing stream of bytes that have not yet been sent
+    //! 尚未发送的传出字节流
     ByteStream _stream;
 
     //! the (absolute) sequence number for the next byte to be sent
+    //! 要发送的下一个字节的（绝对）序列号
     uint64_t _next_seqno{0};
+
+    //! window_size
+    size_t _window_size{1};  //!< 有一个试探窗口的问题
+
+    //! SYN和FIN发送的标志
+    bool _syn_flag{false};
+    bool _fin_flag{false};
+
+    //! 连续发生的重传次数
+    size_t _consecutive_retransmissions{0};
+
+    //! 发送但未被确认的字节
+    size_t _bytes_in_flight{0};
+
+    //! 收到的ackno
+    size_t _ackno_recv{0};
+
+    //! 发送segement的接口
+    void send_segment(TCPSegment &seg);
 
   public:
     //! Initialize a TCPSender

@@ -75,7 +75,9 @@ Start At 2021/11
 > without acknowledgment (that is, without all of its sequence numbers being acknowledged).
 > If so, it needs to be retransmitted (sent again).
 
-除了发送这些段之外，TCPSender 还必须跟踪其未完成的段，直到它们占用的序列号被完全确认。 TCPSender 的所有者会定期调用 TCPSender 的 tick 方法，指示时间的流逝。 TCPSender 负责查看其未完成的 TCPSegment 的集合，并确定最旧的发送段是否在没有确认的情况下未完成的时间过长（即，没有确认其所有序列号）。如果是，则需要重传（再次发送）。
+除了发送这些段之外，TCPSender 还必须跟踪其未完成的段，直到它们占用的序列号被完全确认。 TCPSender 的所有者会定期调用 TCPSender 的 tick 方法，指示时间的流逝。
+
+TCPSender 负责查看其未完成的 TCPSegment 的集合，并确定最旧的发送段是否在没有确认的情况下未完成的时间过长（即，没有确认其所有序列号）。如果是，则需要重传（再次发送）。
 
 
 
@@ -86,7 +88,59 @@ Start At 2021/11
 > finished the whole TCP implementation. As long as you pass those tests 100% and your
 > implementation is reasonable, you’ll be fine
 
-以下是“未完成时间过长”的规则。 你将要实现这个逻辑，它有点详细，但我们不希望你担心隐藏的测试用例试图绊倒你把这个当成 SAT 上的一个单词问题。我们将在本周为您提供一些合理的单元测试，并在您完成整个 TCP 实现后在实验室 4 中进行更完整的集成测试。只要你 100% 通过这些测试并且你的实现是合理的，你就会没事的。
+以下是“未完成时间过长”的规则。 你将要实现这个逻辑，它有点详细，但我们不希望你担心隐藏的测试用例试图绊倒你把这个当成 SAT 上的一个单词问题。
 
+我们将在本周为您提供一些合理的单元测试，并在您完成整个 TCP 实现后在实验室 4 中进行更完整的集成测试。只要你 100% 通过这些测试并且你的实现是合理的，你就会没事的。
 
+1. Every few milliseconds, your TCPSender’s tick method will be called with an argument
+   that tells it how many milliseconds have elapsed since the last time the method was
+   called. Use this to maintain a notion of the total number of milliseconds the TCPSender
+   has been alive. Please don’t try to call any “time” or “clock” functions from
+   the operating system or CPU—the tick method is your only access to the passage of
+   time. That keeps things deterministic and testable.
 
+2. When the TCPSender is constructed, it’s given an argument that tells it the “initial value”
+   of the retransmission timeout (RTO). The RTO is the number of milliseconds to
+   wait before resending an outstanding TCP segment. The value of the RTO will change
+   over time, but the “initial value” stays the same. The starter code saves the “initial
+   value” of the RTO in a member variable called initial retransmission timeout.
+
+3. You’ll implement the retransmission timer: an alarm that can be started at a certain
+   time, and the alarm goes off (or “expires”) once the RTO has elapsed. We emphasize
+   that this notion of time passing comes from the tick method being called—not by
+   getting the actual time of day.
+
+   >您将实现重传计时器：一个可以在特定时间启动的警报，一旦 RTO 结束，警报就会响起（或“过期”）。我们强调，时间流逝的概念来自于被调用的 tick 方法——而不是通过获取一天中的实际时间
+
+4. Every time a segment containing data (nonzero length in sequence space) is sent
+   (whether it’s the first time or a retransmission), if the timer is not running, start it
+   running so that it will expire after RTO milliseconds (for the current value of RTO
+   By “expire,” we mean that the time will run out a certain number of milliseconds in
+   the future.
+
+5. When all outstanding data has been acknowledged, stop the retransmission timer.
+
+6. If tick is called and the retransmission timer has expired:
+   (a) Retransmit the earliest (lowest sequence number) segment that hasn’t been fully
+   acknowledged by the TCP receiver. You’ll need to be storing the outstanding
+   segments in some internal data structure that makes it possible to do this.
+   (b) If the window size is nonzero:
+   i. Keep track of the number of consecutive retransmissions, and increment it
+   because you just retransmitted something. Your TCPConnection will use this
+   information to decide if the connection is hopeless (too many consecutive
+   retransmissions in a row) and needs to be aborted.
+   ii. Double the value of RTO. This is called “exponential backoff”—it slows down
+   retransmissions on lousy networks to avoid further gumming up the works.
+   (c) Reset the retransmission timer and start it such that it expires after RTO millisec-
+   onds (taking into account that you may have just doubled the value of RTO!).
+
+7. When the receiver gives the sender an ackno that acknowledges the successful receipt
+   of new data (the ackno reflects an absolute sequence number bigger than any previous
+   ackno):
+   (a)  Set the RTO back to its “initial value.”
+   (b)  If the sender has any outstanding data, restart the retransmission timer so that it
+   will expire after RTO milliseconds (for the current value of RTO).
+   (c)  Reset the count of “consecutive retransmissions” back to zero.
+   We would suggest implementing the functionality of the retransmission timer in a separate
+   class, but it’s up to you. If you do, please add it to the existing files (tcp sender.hh and
+   tcp sender.cc).
