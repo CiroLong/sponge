@@ -15,7 +15,7 @@ using namespace std;
 StreamReassembler::StreamReassembler(const size_t capacity)
     : _output(capacity), _capacity(capacity), _eof(false), _assembled_bytes(0), _stored_bytes(0), _stored_segements() {}
 
-//! \returns the bytes merged or 0 for no bytes merged
+//! \returns the bytes merged or  0 for no bytes merged  or -1 for can't merge
 //! merge elm2 to elm1
 size_t StreamReassembler::mergeSubstrings(Segement &elm1, const Segement &elm2) {
     Segement x, y;
@@ -98,7 +98,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         size_t write_bytes = _output.write(head_block.data);
         _assembled_bytes += write_bytes;
         _stored_segements.erase(_stored_segements.begin());
-    }
+    }  // 由于buffer的大小也是capacity,所以不会溢出
 
     if (_eof && empty()) {
         _output.end_input();

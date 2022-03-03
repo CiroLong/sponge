@@ -46,6 +46,7 @@ class TCPSender {
 
     //! window_size
     size_t _window_size{1};  //!< 有一个试探窗口的问题
+    bool _window_zero_flag{false};
 
     //! SYN和FIN发送的标志
     bool _syn_flag{false};

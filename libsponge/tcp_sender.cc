@@ -40,8 +40,12 @@ void TCPSender::fill_window() {
     }
     // take window_size as 1 when it equal 0
     size_t window = _window_size;
-    if (window == 0)
+    if (window == 0) {
+        _window_zero_flag = true;
         window = 1;  //<! 零窗口探测
+    } else {
+        _window_zero_flag = false;
+    }
 
     size_t remain_space;  //<! 窗口的可用空间.
 
@@ -58,7 +62,7 @@ void TCPSender::fill_window() {
             seg.header().fin = true;
             _fin_flag = true;
         }
-        if (seg.length_in_sequence_space() == 0) {
+        if (seg.length_in_sequence_space() == 0) {  //空报文
             return;
         }
         send_segment(seg);
@@ -68,7 +72,6 @@ void TCPSender::fill_window() {
 //! \param ackno The remote receiver's ackno (acknowledgment number)
 //! \param window_size The remote receiver's advertised window size
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
-    DUMMY_CODE(ackno, window_size);
     uint64_t abs_ackno = unwrap(ackno, _isn, _ackno_recv);
 
     //未发送或者，已经确认过的序列号，直接返回.
@@ -106,12 +109,13 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
 void TCPSender::tick(const size_t ms_since_last_tick) {
-    DUMMY_CODE(ms_since_last_tick);
     _timer += ms_since_last_tick;
     if (_timer >= _retransmission_timeout && !_segments_outstanding.empty()) {
         _segments_out.push(_segments_outstanding.front());  //!< 快重传
-        _consecutive_retransmissions += 1;                  //!< 重传计时
-        _retransmission_timeout *= 2;                       //!< RTO 翻倍.
+        if (!_window_zero_flag) {                           //!< 用于解决test 17 的bug
+            _consecutive_retransmissions += 1;              //!< 重传计时
+            _retransmission_timeout *= 2;                   //!< RTO 翻倍.
+        }
         _timer_running = true;
         _timer = 0;
     }

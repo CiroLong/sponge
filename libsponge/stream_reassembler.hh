@@ -30,9 +30,9 @@ class StreamReassembler {
 
     bool _eof;                //!< 标志
     size_t _assembled_bytes;  //!< 已经重组好的字节数 _assembled_bytes or _first_unassemble_byte
-    size_t _stored_bytes;     //!< 存储的字节数? = _output.size() + map中的串长
+    size_t _stored_bytes;     //!< 存储的字节数? = _output.size() + set中的串长
 
-    std::set<Segement> _stored_segements;
+    std::set<Segement> _stored_segements;  //!< 使用set, 由于底层为红黑树首先，又重载了 < 运算符， 故Segement在set内有序
 
     //! \returns the bytes merged or 0 for no bytes merged
     //! merge elm2 to elm1

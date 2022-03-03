@@ -36,6 +36,7 @@ uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
     uint32_t offset = n.raw_value() - isn.raw_value();
 
     uint64_t res = (checkpoint & 0xFFFFFFFF00000000) + offset;
+    //!< 需要令res 靠近checkpoint
     if (checkpoint > res) {
         if ((res + dist32 - checkpoint) < checkpoint - res) {
             res += dist32;

@@ -12,11 +12,11 @@ using namespace std;
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
     DUMMY_CODE(seg);
-    uint64_t length;
+    uint64_t length;  //!< 报文长
 
     //! abs_seqno一直在动态变化，以保证计算准确
 
-    if (seg.header().syn) {
+    if (seg.header().syn) {  //第一次握手
         if (_syn_flag)
             return;
         _syn_flag = true;                       //!< 设置syn标记
@@ -49,7 +49,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         return;
     }
 
-    //!< abs_seqno - 1是去除syn后的序列号
+    //!< abs_seqno - 1是去除syn后的序列号 stream index
     _reassembler.push_substring(seg.payload().copy(), abs_seqno - 1, seg.header().fin);
     _recived_bytes = _reassembler.assembled_bytes() + 1;  //!< syn count a byte
     if (_reassembler.input_ended())                       //!< FIN be count as one byte
