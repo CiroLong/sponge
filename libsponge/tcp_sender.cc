@@ -25,13 +25,14 @@ TCPSender::TCPSender(const size_t capacity, const uint16_t retx_timeout, const s
 
 uint64_t TCPSender::bytes_in_flight() const { return _bytes_in_flight; }
 
+// 会自动判断是否需要发送SYN， 调用时直接fillwindow()就行.
 void TCPSender::fill_window() {
     assert(!_stream.error());
     TCPSegment syn_seg;
     // sent a SYN before sent other segment
     if (_next_seqno == 0) {  // no segment sent yet
         syn_seg.header().syn = true;
-        _syn_flag = true;
+        _syn_flag = true;  //这里是发送syn
         send_segment(syn_seg);
         return;
     } else if (_next_seqno == _bytes_in_flight) {
@@ -71,16 +72,16 @@ void TCPSender::fill_window() {
 
 //! \param ackno The remote receiver's ackno (acknowledgment number)
 //! \param window_size The remote receiver's advertised window size
-void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
+bool TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
     uint64_t abs_ackno = unwrap(ackno, _isn, _ackno_recv);
 
     //未发送或者，已经确认过的序列号，直接返回.
     if (abs_ackno > _next_seqno) {
-        return;
+        return false;
     }
     _window_size = window_size;  // 记录窗口大小。
     if (abs_ackno <= _ackno_recv) {
-        return;
+        return true;
     }
     _ackno_recv = abs_ackno;
 
@@ -105,6 +106,7 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         _timer_running = true;
         _timer = 0;
     }
+    return true;
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method

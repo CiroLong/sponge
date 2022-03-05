@@ -11,7 +11,6 @@ void DUMMY_CODE(Targs &&.../* unused */) {}
 using namespace std;
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
-    DUMMY_CODE(seg);
     uint64_t length;  //!< 报文长
 
     //! abs_seqno一直在动态变化，以保证计算准确
@@ -30,7 +29,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         if (length == 0) {  //!< 只有syn号， 直接返回
             return;
         }
-    } else if (!_syn_flag) {  //!< 如果没有syn标记，抛弃报文段.
+    } else if (!_syn_flag) {  //!< 如果之前没有syn标记，抛弃报文段.
         return;
     } else {  //!< 非syn， 计算绝对序列号， 并得到长度
         abs_seqno = unwrap(WrappingInt32(seg.header().seqno.raw_value()), WrappingInt32(_isn), abs_seqno);

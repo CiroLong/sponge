@@ -21,6 +21,31 @@ class TCPConnection {
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
 
+    // my code here
+
+    bool _active{true};
+    size_t _time_since_last_segment_received{0};
+    bool _need_send_rst{false};
+
+    void push_segments_out(bool send_syn);
+
+    bool clean_shutdown();
+    void unclean_shutdown(bool send_rst);  //<! 在接受或者发送rst时调用， 停止所有活动， active设置为false
+
+    // some helper func
+    void push_segement_out(bool send_syn = false);
+
+    // about receiver's state
+    bool in_listen();
+    bool SYN_recv();
+    bool FIN_recv();
+
+    // about sender's state
+    bool CLOSED();
+    bool SYN_sent();
+    bool FIN_sent();
+    bool FIN_acked();
+
   public:
     //! \name "Input" interface for the writer
     //!@{
